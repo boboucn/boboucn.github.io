@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    </head>
+    <body style="text-align: center;">
+
+        <h1 style="font-size: xx-large;">随机抽取学号</h1>
+        <div style="font-size: large;">最小值（包括）：<input type="text" id="minval_input" style="font-size: medium;"></div>
+        <div style="font-size: large;">最大值（包括）：<input type="text" id="maxval_input" style="font-size: medium; margin-top: 10px;"></div>
+        <h3 id="number_display" style="height: max-content;">学号</h3>
+        <button id="get_number" style="margin-top: 10px; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; padding-right: 10px; font-size: large;">抽取</button>
+
+        <script type="text/javascript">
+            $(function() {
+                if (window.localStorage.getItem("minval") != null && window.localStorage.getItem("maxval") != null) {
+                    $("#minval_input").val(parseInt(window.localStorage.getItem("minval")));
+                    $("#maxval_input").val(parseInt(window.localStorage.getItem("maxval")));
+                }
+            });
+
+            $("#get_number").click(function() {
+                var minval = $("#minval_input").val();
+                var maxval = $("#maxval_input").val();
+                minval = parseInt(minval);
+                maxval = parseInt(maxval);
+                if (isNaN(minval) || isNaN(maxval)) {
+                    alert("输入内容有误，请检查格式");
+                }
+                else {
+                    var rnd = Math.floor(Math.random() * (maxval - minval + 1)) + minval;
+                    $("#number_display").text(rnd.toString());
+                    window.localStorage.setItem("minval", minval.toString());
+                    window.localStorage.setItem("maxval", maxval.toString());
+                }
+            });
+        </script>
+    </body>
+</html>
