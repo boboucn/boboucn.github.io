@@ -30,7 +30,8 @@
                     alert("输入内容有误，请检查格式");
                 }
                 else {
-                    var rnd = Math.floor(Math.random() * (maxval - minval + 1)) + minval;
+                    rnd = window.crypto.getRandomValues(new Uint32Array(1))[0];
+                    rnd = rnd % (maxval - minval + 1) + minval;           
                     $("#number_display").text(rnd.toString());
                     window.localStorage.setItem("minval", minval.toString());
                     window.localStorage.setItem("maxval", maxval.toString());
