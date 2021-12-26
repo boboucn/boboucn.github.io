@@ -29,7 +29,7 @@
                 <div style="margin-top: 20px;">指定的学号：<input type="text" id="specified_id"></div>
                 <div style="margin-top: 10px;">概率调整到：<input type="text" id="specified_pos"></div>
                 <p style="font-size: small;">
-                    多个指定的学号请用空格分开<br/>“概率调整到”字段请填入一个 0 到 1 之间的小数
+                    多个指定的学号请用空格分开<br/>“概率调整到”字段请填入一个 0 到 1 之间（均包含）的小数<br/>不指定概率时两字段应均为空
                 </p>
             </div>
             <hr style="margin-top: 10px;">
@@ -38,6 +38,7 @@
         </div>
         <script type="text/javascript">
             var prevmin = 0, prevmax = 0;
+            var numbers_got = 0;
 
             //默认的随机数生成
             var get_random_default = function() {
@@ -49,7 +50,7 @@
             }
 
             class random_heap {
-                constructor(minvalue, maxvalue, seed = 998244353) {
+                constructor(minvalue, maxvalue) {
                     this.minval = minvalue;
                     this.maxval = maxvalue;
                     this.heap = new Uint32Array(maxvalue - minvalue + 2);
@@ -59,7 +60,7 @@
                     }
 
                     //随机打乱
-                    for (var i = 0; i < maxvalue - minvalue; ++i) {
+                    for (var i = 1; i <= maxvalue - minvalue; ++i) {
                         var ind = getint_inrange(i, maxvalue - minvalue + 1);
                         var t = this.heap[i];
                         this.heap[i] = this.heap[ind];
@@ -69,9 +70,8 @@
 
                 //获取新的数
                 getint = function() {
-                    var result = this.heap[1];
-
                     //将抽过的号移到堆底
+                    //先移动再返回堆顶的值，这样就无法从控制台预测下一个数
                     var index = 1, prev = 0;
                     for (;;) {
                         prev = index;
@@ -85,7 +85,7 @@
                         this.heap[index] = t;
                     }
 
-                    return result;
+                    return this.heap[1];
                 }
             };
             
@@ -110,31 +110,45 @@
 
             //抽取新的学号
             $("#get_number").click(function() {
+                /*
+                if (numbers_got++ > 50) {
+                    if (numbers_got == 52) {
+                        $("h1").text("哦是吗，你没有资格抽这么多号");
+                        $("#number_display").text("你没有资格");
+                    }
+                    return;
+                }
+                */
+
                 var minval = $("#minval_input").val();
                 var maxval = $("#maxval_input").val();
                 minval = parseInt(minval);
                 maxval = parseInt(maxval);
-                if (isNaN(minval) || isNaN(maxval)) {
-                    alert("输入内容有误，请检查格式");
+                if (isNaN(minval) || isNaN(maxval) || minval == null || maxval == null) {
+                    alert("最大值或最小值输入内容有误，请检查格式");
                 }
                 else {
+                    //特殊调整概率
                     if ($("#specified_id").val().replace(" ", "") != "") {
                         //对特殊调整的概率进行处理
                         specified_numbers = $("#specified_id").val().split(" ");
                         for (var i = 0; i < specified_numbers.length; ++i) {
+                            //当用户输入多个空格时进行处理
                             if (specified_numbers[i].replace(" ", "") == "") {
-                                specified_numbers.remove(i);
+                                specified_numbers.splice(i, 1);
+                                --i;
                                 continue;
                             }
                             if (isNaN(specified_numbers[i] = parseInt(specified_numbers[i]))) {
-                                alert("输入内容有误，请检查格式");
+                                alert("概率调整部分输入内容有误，请检查格式");
                                 return;
                             }
+
                         }
     
                         var probability = parseFloat($("#specified_pos").val());
-                        if (isNaN(probability) || probability < 0 || probability > 1) {
-                            alert("输入内容有误，请检查格式");
+                        if (probability == null || isNaN(probability) || probability < 0 || probability > 1) {
+                            alert("概率调整部分输入内容有误，请检查格式");
                             return;
                         }
         
@@ -144,6 +158,10 @@
                             return;
                         }
                     }
+                    else if ($("#specified_pos").val().replace(" ", "") != "") {
+                        alert("概率调整部分输入内容有误，请检查格式");
+                        return;
+                    }
                     
 
                     var threshold = 256, rnd = 0;
@@ -151,6 +169,7 @@
                     //当最大值和最小值相差过大时，直接返回而不建堆
                     if (maxval - minval + 1 >= threshold) {
                         rnd = get_random_default();
+                        rnd = rnd % (maxval - minval + 1) + minval;
                     }
                     else {
                         if (minval != prevmin || maxval != prevmax) {
@@ -160,7 +179,6 @@
                         rnd = rndhp.getint();
                     }
 
-                    rnd = rnd % (maxval - minval + 1) + minval;
                     $("#number_display").text(rnd.toString());
                     window.localStorage.setItem("minval", minval.toString());
                     window.localStorage.setItem("maxval", maxval.toString());
