@@ -33,7 +33,7 @@
             <hr style="margin-top: 10px;">
             <h3 id="number_display" style="height: max-content;">学号</h3>
             <button id="get_number" style="margin-top: 10px; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; padding-right: 10px; font-size: large;">抽取</button>
-            <div style="font-size: small; font-style: italic; margin-top: 10px;">Made by boboucn and LagranZhai. version 3.0.1.</div>
+            <div style="font-size: small; font-style: italic; margin-top: 10px;">Made by boboucn and LagranZhai. version 3.0.2.</div>
         </div>
 
         <!--随机堆部分-->
@@ -112,7 +112,7 @@
                 maxval_input = parseInt($("#maxval_input").val());
                 numcnt_input = parseInt($("#numcnt_input").val());
                 if (isspec) {
-                    var t = $("#specified_id").val().split();
+                    var t = $("#specified_id").val().split(" ");
                     for (var i = 0; i < t.length; ++i)
                         speclist.push(parseInt(t[i]));
                     specprob = parseFloat($("#specified_pr").val());
@@ -140,7 +140,6 @@
                         alert("您不可以指定 max - min + 1 个学号或者更多的学号");
                         return;
                     }
-
                 }
 
                 //开始抽取！
