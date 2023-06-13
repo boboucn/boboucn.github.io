@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=yes">
+        <script src="https://cdn.staticfile.org/jquery/3.6.0/jquery.min.js"></script>
+        <style>
+            input { font-size: medium; padding: 3px; margin-top: 3px; }
+            hr { width: 350px; }
+        </style>
+        <link rel="shortcut icon" href="https://cdn.jsdelivr.net/gh/boboucn/boboucn.github.io/diana256.ico">
+        <title>随机抽取学号</title>
+    </head>
+    <body style="font-size: large;">
+        <noscript>
+            <h1>该网页需要 javascript 以运行。注意不要使用 IE 浏览器访问此网页。</h1>
+        </noscript>
+
+        <div style="text-align: center; margin-left: auto; margin-right: auto; max-width: 80%;">
+            <h1 style="font-size: xx-large;">随机抽取学号</h1>
+            <div style="margin-top: 10px"><span style="display: inline-block; width: 150px; text-align: right; position: relative; vertical-align: top;">抽取姓名列表 ：</span><textarea type="text" id="namelist_input" style="height: 200px; resize: none; width: 200px; font-size: medium; font-family: sans-serif;"></textarea></div>
+            <div style="margin-top: 10px;"><span style="display: inline-block; width: 150px; text-align: right;">单次抽取数量 ： </span><input type="text" id="numcnt_input" value="1"></div>
+            <div style="margin-top: 10px; font-size: small;">在「抽取姓名列表」的文本框中，通过回车分隔要抽的姓名。</div>
+            <div style="margin-top: 10px; font-size: small;">单次抽取数量应不高于 20。</div>
+            <h3 id="number_display" style="height: max-content;">学号</h3>
+            <button id="get_number" style="margin-top: 10px; padding-top: 5px; padding-bottom: 5px; padding-left: 10px; padding-right: 10px; font-size: large;">抽取</button>
+            <div style="font-size: small; font-style: italic; margin-top: 10px;">Made by boboucn and LagranZhai. version 3.0.2.</div>
+        </div>
+
+        <!--随机堆部分-->
+        <script type="text/javascript">
+            function getrnduint() { return window.crypto.getRandomValues(new Uint32Array(1))[0]; }
+            function getrnduint_inrange(min, max) { return getrnduint() % (max - min + 1) + min; }
+            //随机堆
+            class random_heap {
+                constructor(_min, _max) {
+                    this.min = _min;
+                    this.max = _max;
+                    this.size = _max - _min + 1;
+                    this.heap = new Uint32Array(_max - _min + 2);
+                    for (var i = 1; i <= this.size; ++i)
+                        this.heap[i] = this.min + i - 1;
+                    //随机打乱
+                    for (var i = 1; i <= this.size; ++i) {
+                        var j = getrnduint_inrange(1, i);
+                        var t = this.heap[i]; this.heap[i] = this.heap[j]; this.heap[j] = t;
+                    }
+                }
+
+                //获取堆顶
+                get = function() {
+                    var i = 1, j = 1;
+                    for (;;) {
+                        j = (i << 1) | (getrnduint() & 1);
+                        if (j > this.size) { if (j - 1 <= this.size) --j; else break; }
+                        var t = this.heap[i]; this.heap[i] = this.heap[j]; this.heap[j] = t;
+                        i = j;
+                    }
+                    return this.heap[1];
+                }
+            };
+        </script>
+
+        <!--页面初始化-->
+        <script type="text/javascript">
+            if (window.localStorage.getItem("namelist") != null)
+                $("#namelist_input").val(window.localStorage.getItem("namelist"));
+        </script>
+
+        <!--开始抽取学号-->
+        <script type="text/javascript">
+            var prvn = -1, rndheap;
+            var select_fn = function () {
+                if (/^\d+$/.test($("#numcnt_input").val()) == false) {
+                    alert("单词抽取数量输入有误，请检查输入");
+                    return;
+                }
+                var numcnt = parseInt($("#numcnt_input").val());
+                var namelist = $("#namelist_input").val().split("\n").filter(function (item) { return item != ""; });
+                if (namelist.length == 0) {
+                    alert("姓名列表不能为空");
+                    return;
+                }
+                if (namelist.length != prvn) {
+                    prvn = namelist.length;
+                    rndheap = new random_heap(0, namelist.length-1);
+                }
+                window.localStorage.setItem("namelist", $("#namelist_input").val());
+
+                var final_display = "";
+                while (numcnt--)
+                    final_display += namelist[rndheap.get()] + " ";
+                $("#number_display").text(final_display);
+            };
+
+            $("#get_number").click(select_fn);
+        </script>
+    </body>
+</html>
